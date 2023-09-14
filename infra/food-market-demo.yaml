@@ -1,0 +1,41 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.quarkus.io/commit-id: 222265833ba198093a2e90259375634f5b9d6bda
+    app.quarkus.io/build-timestamp: 2023-09-22 - 19:35:17 +0000
+    app.openshift.io/connects-to: "bookings,supplies,completed,shipping,postgresql"
+  labels:
+    app.kubernetes.io/managed-by: quarkus
+    app.kubernetes.io/name: food-market-demo
+    app.kubernetes.io/version: 1.0.0
+  name: food-market-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: food-market-demo
+      app.kubernetes.io/version: 1.0.0
+  template:
+    metadata:
+      annotations:
+        app.quarkus.io/commit-id: 222265833ba198093a2e90259375634f5b9d6bda
+        app.quarkus.io/build-timestamp: 2023-09-22 - 19:35:17 +0000
+        app.openshift.io/connects-to: "bookings,supplies,completed,shipping,postgresql"
+      labels:
+        app.kubernetes.io/managed-by: quarkus
+        app.kubernetes.io/name: food-market-demo
+        app.kubernetes.io/version: 1.0.0
+    spec:
+      containers:
+        - env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: my-cluster-kafka-bootstrap:9092
+          image: quay.io/citrusframework/food-market-demo:1.0.0
+          imagePullPolicy: Always
+          name: food-market-demo

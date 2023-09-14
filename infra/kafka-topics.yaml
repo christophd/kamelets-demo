@@ -1,0 +1,69 @@
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: bookings
+  labels:
+    strimzi.io/cluster: "my-cluster"
+spec:
+  config:
+    retention.ms: 604800000
+    segment.bytes: 1073741824
+  partitions: 1
+  replicas: 1
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: supplies
+  labels:
+    strimzi.io/cluster: "my-cluster"
+spec:
+  config:
+    retention.ms: 604800000
+    segment.bytes: 1073741824
+  partitions: 1
+  replicas: 1
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: products
+  labels:
+    strimzi.io/cluster: "my-cluster"
+spec:
+  config:
+    retention.ms: 604800000
+    segment.bytes: 1073741824
+  partitions: 1
+  replicas: 1
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: completed
+  labels:
+    strimzi.io/cluster: "my-cluster"
+spec:
+  config:
+    retention.ms: 604800000
+    segment.bytes: 1073741824
+  partitions: 1
+  replicas: 1
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: shipping
+  labels:
+    strimzi.io/cluster: "my-cluster"
+spec:
+  config:
+    retention.ms: 604800000
+    segment.bytes: 1073741824
+  partitions: 1
+  replicas: 1

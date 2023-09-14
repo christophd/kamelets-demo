@@ -1,0 +1,10 @@
+.idea
+*.iml
+
+.DS_Store
+
+target/
+_output/
+
+.yaks-jbang/
+.camel-jbang/
