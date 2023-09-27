@@ -10,6 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: quarkus
     app.kubernetes.io/name: food-market-demo
     app.kubernetes.io/version: 1.0.0
+    app.openshift.io/runtime: quarkus
   name: food-market-demo
 spec:
   replicas: 1

@@ -1,6 +1,6 @@
-# kamelets-quarkus-demo
+# Kamelets Demo
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+This project uses Quarkus as a sample event-driven application and in the demo Kamelets are added as event sources and sinks to connect the application to the  world.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 

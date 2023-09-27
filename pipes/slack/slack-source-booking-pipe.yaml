@@ -1,0 +1,71 @@
+# ---------------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ---------------------------------------------------------------------------
+
+apiVersion: camel.apache.org/v1
+kind: Pipe
+metadata:
+  name: slack-source-booking-pipe
+  annotations:
+    trait.camel.apache.org/mount.configs: "secret:slack-credentials"
+spec:
+  source:
+    ref:
+      kind: Kamelet
+      apiVersion: camel.apache.org/v1
+      name: slack-source
+    properties:
+      channel: "bookings"
+      token: "{{slack.bot.token}}"
+      delay: 10000
+    dataTypes:
+      out:
+        format: plain-text
+  steps:
+    - ref:
+        kind: Kamelet
+        apiVersion: camel.apache.org/v1
+        name: extract-field-action
+      properties:
+        field: text
+    - ref:
+       kind: Kamelet
+       apiVersion: camel.apache.org/v1
+       name: log-action
+    - ref:
+        kind: Kamelet
+        apiVersion: camel.apache.org/v1
+        name: simple-filter-action
+      properties:
+        expression: "$simple{body} !regex 'Hey bot, create new booking: [A-Za-z]{1,20},\\d{1,3},\\d{0,3}.\\d{2}'"
+    - ref:
+        kind: Kamelet
+        apiVersion: camel.apache.org/v1
+        name: set-body-action
+      properties:
+        value: | 
+          { "client":"slack-bot","product":"$simple{body.substring(28).trim().replaceFirst(",", "?_?amount?:").replaceFirst(",", "_?price?:").replaceAll("_", ",").replace('?', '"')} }
+    - ref:
+        kind: Kamelet
+        apiVersion: camel.apache.org/v1
+        name: log-action
+  sink:
+    ref:
+      kind: KafkaTopic
+      apiVersion: kafka.strimzi.io/v1beta2
+      name: bookings
+    properties:
+      brokers: "{{kafka.bootstrapServers}}"
