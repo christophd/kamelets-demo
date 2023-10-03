@@ -26,9 +26,7 @@ import org.apache.camel.demo.model.Supply;
 import org.apache.camel.demo.model.event.BookingCompletedEvent;
 import org.apache.camel.demo.model.event.ShippingEvent;
 import org.citrusframework.TestCaseRunner;
-import org.citrusframework.annotations.CitrusEndpoint;
 import org.citrusframework.annotations.CitrusResource;
-import org.citrusframework.kafka.config.annotation.KafkaEndpointConfig;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
 import org.citrusframework.message.builder.ObjectMappingPayloadBuilder;
 import org.citrusframework.quarkus.CitrusSupport;
@@ -40,28 +38,29 @@ import static org.citrusframework.actions.SendMessageAction.Builder.send;
 import static org.citrusframework.actions.SleepAction.Builder.delay;
 import static org.citrusframework.container.Iterate.Builder.iterate;
 import static org.citrusframework.container.Parallel.Builder.parallel;
+import static org.citrusframework.kafka.endpoint.builder.KafkaEndpoints.kafka;
 
 @QuarkusTest
 @CitrusSupport
 class FoodMarketApplicationTest {
 
-    @CitrusEndpoint
-    @KafkaEndpointConfig(
-        topic = "products"
-    )
-    private KafkaEndpoint products;
+    @BindToRegistry
+    private final KafkaEndpoint products = kafka()
+            .asynchronous()
+            .topic("products")
+            .build();
 
-    @CitrusEndpoint
-    @KafkaEndpointConfig(
-        topic = "bookings"
-    )
-    private KafkaEndpoint bookings;
+    @BindToRegistry
+    private final KafkaEndpoint bookings = kafka()
+            .asynchronous()
+            .topic("bookings")
+            .build();
 
-    @CitrusEndpoint
-    @KafkaEndpointConfig(
-        topic = "supplies"
-    )
-    private KafkaEndpoint supplies;
+    @BindToRegistry
+    private final KafkaEndpoint supplies = kafka()
+            .asynchronous()
+            .topic("supplies")
+            .build();;
 
     @CitrusResource
     private TestCaseRunner t;
