@@ -20,6 +20,7 @@ package org.apache.camel.demo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.junit.QuarkusTest;
 
+import jakarta.inject.Inject;
 import org.apache.camel.demo.model.Booking;
 import org.apache.camel.demo.model.Product;
 import org.apache.camel.demo.model.Supply;
@@ -28,9 +29,7 @@ import org.apache.camel.demo.model.event.ShippingEvent;
 import org.citrusframework.TestCaseRunner;
 import org.citrusframework.annotations.CitrusResource;
 import org.citrusframework.kafka.endpoint.KafkaEndpoint;
-import org.citrusframework.message.builder.ObjectMappingPayloadBuilder;
 import org.citrusframework.quarkus.CitrusSupport;
-import org.citrusframework.spi.BindToRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.citrusframework.actions.ReceiveMessageAction.Builder.receive;
@@ -38,64 +37,62 @@ import static org.citrusframework.actions.SendMessageAction.Builder.send;
 import static org.citrusframework.actions.SleepAction.Builder.delay;
 import static org.citrusframework.container.Iterate.Builder.iterate;
 import static org.citrusframework.container.Parallel.Builder.parallel;
+import static org.citrusframework.dsl.JsonSupport.marshal;
 import static org.citrusframework.kafka.endpoint.builder.KafkaEndpoints.kafka;
 
 @QuarkusTest
 @CitrusSupport
 class FoodMarketApplicationTest {
 
-    @BindToRegistry
     private final KafkaEndpoint products = kafka()
             .asynchronous()
             .topic("products")
             .build();
 
-    @BindToRegistry
     private final KafkaEndpoint bookings = kafka()
             .asynchronous()
             .topic("bookings")
             .build();
 
-    @BindToRegistry
     private final KafkaEndpoint supplies = kafka()
             .asynchronous()
             .topic("supplies")
-            .build();;
+            .build();
 
     @CitrusResource
     private TestCaseRunner t;
 
-    @BindToRegistry
-    private final ObjectMapper mapper = new ObjectMapper();
+    @Inject
+    ObjectMapper mapper;
 
     @Test
     void shouldCompleteOnSupply() {
         Product product = new Product("Watermelon");
         t.when(send()
             .endpoint(products)
-            .message().body(new ObjectMappingPayloadBuilder(product)));
+            .message().body(marshal(product, mapper)));
 
         t.then(delay().seconds(1L));
 
         Booking booking = new Booking("christoph", product, 100, 0.99D);
         t.when(send()
                 .endpoint(bookings)
-                .message().body(new ObjectMappingPayloadBuilder(booking)));
+                .message().body(marshal(booking, mapper)));
 
         Supply supply = new Supply(product, 100, 0.99D);
         t.when(send()
                 .endpoint(supplies)
-                .message().body(new ObjectMappingPayloadBuilder(supply)));
+                .message().body(marshal(supply, mapper)));
 
         BookingCompletedEvent completedEvent = BookingCompletedEvent.from(booking);
         completedEvent.setStatus(Booking.Status.COMPLETED.name());
         t.then(parallel().actions(
             receive()
                 .endpoint("kafka:completed?timeout=10000")
-                .message().body(new ObjectMappingPayloadBuilder(completedEvent)),
+                .message().body(marshal(completedEvent, mapper)),
             receive()
                 .endpoint("kafka:shipping?timeout=10000")
-                .message().body(new ObjectMappingPayloadBuilder(new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@")))
+                .message().body(marshal(new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@"), mapper))
         ));
     }
 
@@ -106,22 +103,22 @@ class FoodMarketApplicationTest {
         Supply supply = new Supply(product, 100, 0.99D);
         t.when(send()
                 .endpoint(supplies)
-                .message().body(new ObjectMappingPayloadBuilder(supply)));
+                .message().body(marshal(supply, mapper)));
 
         Booking booking = new Booking("christoph", product, 100, 0.99D);
         t.when(send()
                 .endpoint(bookings)
-                .message().body(new ObjectMappingPayloadBuilder(booking)));
+                .message().body(marshal(booking, mapper)));
 
         BookingCompletedEvent completedEvent = BookingCompletedEvent.from(booking);
         completedEvent.setStatus(Booking.Status.COMPLETED.name());
         t.then(parallel().actions(
             receive()
                 .endpoint("kafka:completed?timeout=10000")
-                .message().body(new ObjectMappingPayloadBuilder(completedEvent)),
+                .message().body(marshal(completedEvent, mapper)),
             receive()
                 .endpoint("kafka:shipping?timeout=10000")
-                .message().body(new ObjectMappingPayloadBuilder(new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@")))
+                .message().body(marshal(new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@"), mapper))
         ));
     }
 
@@ -136,7 +133,7 @@ class FoodMarketApplicationTest {
                 .actions(
                         send()
                             .endpoint(bookings)
-                            .message().body(new ObjectMappingPayloadBuilder(booking))));
+                            .message().body(marshal(booking, mapper))));
         t.variable("booking", booking);
 
         t.$(delay().milliseconds(1000L));
@@ -149,20 +146,20 @@ class FoodMarketApplicationTest {
         t.then(parallel().actions(
             send()
                 .endpoint(supplies)
-                .message().body(new ObjectMappingPayloadBuilder(supply)),
+                .message().body(marshal(supply, mapper)),
             iterate()
                 .condition((i, context) -> i < 10)
                 .actions(
                     receive()
                         .endpoint("kafka:completed?timeout=10000")
-                        .message().body(new ObjectMappingPayloadBuilder(completedEvent))
+                        .message().body(marshal(completedEvent, mapper))
                 ),
             iterate()
                 .condition((i, context) -> i < 10)
                 .actions(
                     receive()
                         .endpoint("kafka:shipping?timeout=10000")
-                        .message().body(new ObjectMappingPayloadBuilder(new ShippingEvent(booking.getClient(), product.getName(), booking.getAmount(), "@ignore@")))
+                        .message().body(marshal(new ShippingEvent(booking.getClient(), product.getName(), booking.getAmount(), "@ignore@"), mapper))
                 )
         ));
     }
