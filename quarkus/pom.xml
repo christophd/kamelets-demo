@@ -17,6 +17,7 @@
     <quarkus.platform.version>3.5.0</quarkus.platform.version>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
     <citrus.version>4.0.0</citrus.version>
+    <javafaker.version>1.0.2</javafaker.version>
     <skipITs>true</skipITs>
   </properties>
 
@@ -25,13 +26,6 @@
       <dependency>
         <groupId>io.quarkus.platform</groupId>
         <artifactId>quarkus-bom</artifactId>
-        <version>${quarkus.platform.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus.platform</groupId>
-        <artifactId>quarkus-camel-bom</artifactId>
         <version>${quarkus.platform.version}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -75,21 +69,11 @@
       <artifactId>quarkus-container-image-jib</artifactId>
     </dependency>
 
-    <!-- Apache Camel -->
-    <dependency>
-      <groupId>org.apache.camel.quarkus</groupId>
-      <artifactId>camel-quarkus-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.camel.quarkus</groupId>
-      <artifactId>camel-quarkus-kafka</artifactId>
-    </dependency>
-
     <!-- Shipping address faker -->
     <dependency>
       <groupId>com.github.javafaker</groupId>
       <artifactId>javafaker</artifactId>
-      <version>1.0.2</version>
+      <version>${javafaker.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.yaml</groupId>
@@ -108,6 +92,8 @@
       <artifactId>quarkus-junit5</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Citrus test modules -->
     <dependency>
       <groupId>org.citrusframework</groupId>
       <artifactId>citrus-quarkus</artifactId>

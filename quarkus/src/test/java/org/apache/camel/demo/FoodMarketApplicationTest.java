@@ -74,7 +74,7 @@ class FoodMarketApplicationTest {
 
         t.then(delay().seconds(1L));
 
-        Booking booking = new Booking("christoph", product, 100, 0.99D);
+        Booking booking = new Booking("citrus-test", product, 100, 0.99D);
         t.when(send()
                 .endpoint(bookings)
                 .message().body(marshal(booking, mapper)));
@@ -86,13 +86,15 @@ class FoodMarketApplicationTest {
 
         BookingCompletedEvent completedEvent = BookingCompletedEvent.from(booking);
         completedEvent.setStatus(Booking.Status.COMPLETED.name());
+
+        ShippingEvent shippingEvent = new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@");
         t.then(parallel().actions(
             receive()
                 .endpoint("kafka:completed?timeout=10000")
                 .message().body(marshal(completedEvent, mapper)),
             receive()
                 .endpoint("kafka:shipping?timeout=10000")
-                .message().body(marshal(new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@"), mapper))
+                .message().body(marshal(shippingEvent, mapper))
         ));
     }
 
@@ -105,20 +107,22 @@ class FoodMarketApplicationTest {
                 .endpoint(supplies)
                 .message().body(marshal(supply, mapper)));
 
-        Booking booking = new Booking("christoph", product, 100, 0.99D);
+        Booking booking = new Booking("citrus-test", product, 100, 0.99D);
         t.when(send()
                 .endpoint(bookings)
                 .message().body(marshal(booking, mapper)));
 
         BookingCompletedEvent completedEvent = BookingCompletedEvent.from(booking);
         completedEvent.setStatus(Booking.Status.COMPLETED.name());
+
+        ShippingEvent shippingEvent = new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@");
         t.then(parallel().actions(
             receive()
                 .endpoint("kafka:completed?timeout=10000")
                 .message().body(marshal(completedEvent, mapper)),
             receive()
                 .endpoint("kafka:shipping?timeout=10000")
-                .message().body(marshal(new ShippingEvent(booking.getClient(), product.getName(), supply.getAmount(), "@ignore@"), mapper))
+                .message().body(marshal(shippingEvent, mapper))
         ));
     }
 
@@ -127,13 +131,13 @@ class FoodMarketApplicationTest {
         Product product = new Product("Apple");
         t.variable("product", product);
 
-        Booking booking = new Booking("christoph", product, 10, 1.99D);
+        Booking booking = new Booking("citrus-test", product, 10, 1.99D);
         t.when(iterate()
-                .condition((i, context) -> i < 10)
-                .actions(
-                        send()
-                            .endpoint(bookings)
-                            .message().body(marshal(booking, mapper))));
+            .condition((i, context) -> i < 10)
+            .actions(
+                send()
+                    .endpoint(bookings)
+                    .message().body(marshal(booking, mapper))));
         t.variable("booking", booking);
 
         t.$(delay().milliseconds(1000L));
@@ -142,6 +146,8 @@ class FoodMarketApplicationTest {
 
         BookingCompletedEvent completedEvent = BookingCompletedEvent.from(booking);
         completedEvent.setStatus(Booking.Status.COMPLETED.name());
+
+        ShippingEvent shippingEvent = new ShippingEvent(booking.getClient(), product.getName(), booking.getAmount(), "@ignore@");
 
         t.then(parallel().actions(
             send()
@@ -159,7 +165,7 @@ class FoodMarketApplicationTest {
                 .actions(
                     receive()
                         .endpoint("kafka:shipping?timeout=10000")
-                        .message().body(marshal(new ShippingEvent(booking.getClient(), product.getName(), booking.getAmount(), "@ignore@"), mapper))
+                        .message().body(marshal(shippingEvent, mapper))
                 )
         ));
     }
